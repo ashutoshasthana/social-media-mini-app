@@ -21,7 +21,8 @@ export default {
   /**
    * That long string 
    */
-  dbURL: `mysql://${process.env.MYSQL_USERNAME}:${process.env.MYSQL_PASSWORD}@localhost:3306/${process.env.MYSQL_DB}`,
+  //dbURL: `mysql://${process.env.MYSQL_USERNAME}:${process.env.MYSQL_PASSWORD}@localhost:3306/${process.env.MYSQL_DB}`,
+  dbURL:`${process.env.PDB_URL}`,
   DB_ENV:process.env.DB_ENV,
   /**
    * Your secret sauce
@@ -55,7 +56,7 @@ export default {
    * API configs
    */
   api: {
-    prefix: '/ins',
+    prefix: '/social',
   },
   /**
    * Mailgun email credentials

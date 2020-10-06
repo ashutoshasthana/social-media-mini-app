@@ -1,47 +1,47 @@
-import { IsString,IsNumber,IsDate,IsBoolean,IsNotEmpty,ValidateIf ,IsDefined} from 'class-validator';
+import { IsString,IsNumber,IsDate,IsBoolean,IsNotEmpty,ValidateIf ,IsDefined, IsEmail,isString, minLength} from 'class-validator';
 
 export class User {
+
     @IsNumber()
     public id:number;
+
+    @IsString()  
+    public user_id:string;
 
     @IsString()
     @IsDefined()
     @IsNotEmpty()
-    public user_name:string;
+    public first_name:string;
 
+    @IsString()
+    @IsDefined()
+    @IsNotEmpty()
+    public last_name:string;
+
+    @IsString()
+    @IsDefined()
+    @IsNotEmpty()
+    @IsEmail()
+    public email:string;
+    
     @IsString()
     @IsDefined()
     @IsNotEmpty()
     public password:string;
 
-    @IsString()
-    public tutor_id:string;
+    @IsString()   
+    public mobile_number:number;
 
-    @IsString()
-    public institute_id:string;
+    @IsString()   
+    public photo_url:string;
 
-    @IsString()
-    public branch_id:string;
+    @IsDate()   
+    public birthday:Date;
 
-    @IsString()
-    public student_id:string;
-
-
-    @IsString()
-    @IsDefined()
-    @IsNotEmpty()
-    public role_id:string;
+    @IsDate()   
+    public create_time:Date;
 
     @IsDate()
-    public last_access_time:Date;
-
-    @IsBoolean()
-    public deleted:boolean;
-
-    @IsString()
-    public status:string;
-
-    @IsDate()
-    public datetime:Date;
+    public update_time:Date;  
 
 }

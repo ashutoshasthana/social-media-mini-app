@@ -46,7 +46,7 @@ public  userLogin = async (user_name:string,password:string,next:NextFunction):P
       const atb = atob(userData.password);
       const passwordInPlainText = atb;     
       const hashedPassword = await bcrypt.hash(passwordInPlainText, 10);
-      userData.password = hashedPassword;
+      //userData.password = hashedPassword;
      const registerRes = await knex(Tables.USERS).insert(userData);
      return { userid:registerRes[0] };     
     } catch(e){
@@ -74,7 +74,7 @@ public  userLogin = async (user_name:string,password:string,next:NextFunction):P
      * because it doesn't have _the secret_ to sign it
      * more information here: https://softwareontheroad.com/you-dont-need-passport
      */
-    this.logger.silly(`Sign JWT for userId: ${user.user_name}`);
+    this.logger.silly(`Sign JWT for userId: ${user.user_id}`);
     return jwt.sign(
       {
          user: user, // We are gonna use this in the middleware 'isAuth'

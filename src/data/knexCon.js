@@ -4,7 +4,7 @@ import config from '../config/index';
 module.exports = {
     //development environment variable configuration
     development: {    
-        client: 'mysql',
+        client: 'postgres',
         connection: config.dbURL,
         pool: {
           min: 2,
@@ -32,7 +32,7 @@ module.exports = {
       
     //production environment variable configuration
     production: {        
-        client: 'mysql',        
+        client: 'postgresql',        
         connection: process.env.DATABASE_URL+'?ssl=true&sslmode=require',
         pool: {
           min: 2,

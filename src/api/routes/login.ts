@@ -72,8 +72,10 @@ export default async (app: Router) => {
     "/forgot-password",
     middlewares.isAuth,
     validationMiddleware(null),
-    async (req: Request, res: Response) => {     
+    async (req: Request, res: Response) => {      
       return res.json({ user: "Ashutosh Asthana forgot-password" }).status(200);
     }
   );
+
+
 };
