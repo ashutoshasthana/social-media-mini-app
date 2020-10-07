@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsDefined, IsNotEmpty, IsString } from 'class-validator';
 
 class LoginCredDto {
   @IsString()
@@ -6,6 +6,20 @@ class LoginCredDto {
  
   @IsString()
   public password: string; 
+
+}
+
+export class ResetPassword {
+
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  public old_password: string;
+ 
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  public new_password: string; 
 
 }
  

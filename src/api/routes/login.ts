@@ -3,8 +3,8 @@ import { Container } from "typedi";
 import bcrypt from "bcrypt";
 import validationMiddleware from "../middlewares/validation.middleware";
 import middlewares from "../middlewares";
-import LoginCredDto from "../../models/login.dto";
-import { User } from "../../models/user.dto";
+import LoginCredDto , { ResetPassword } from "../../models/login.dto";
+
 import knex from "../../data/knex";
 import { app_services } from "../../services";
 import HttpException from "../../exceptions/HttpException";
@@ -29,11 +29,7 @@ export default async (app: Router) => {
       logger.debug("Loggin User");
       try {
         const loginServiceInstance = Container.get(app_services.loginService);
-        const serRes = await loginServiceInstance.userLogin(
-          input.user_name,
-          input.password,
-          next
-        );
+        const serRes = await loginServiceInstance.userLogin(input.user_name,input.password);
         //console.log("userRes : ",data);
         res.json({ data: serRes, success: true });
       } catch (e) {
@@ -43,29 +39,24 @@ export default async (app: Router) => {
   );
 
 
-
-  //Route for New user signup.
-  route.post(
-    "/sign-up",
-    middlewares.isAuth,
-    validationMiddleware(User,true),
-    async (request: Request, response: Response, next: NextFunction) => {
-      var input: User = request.body;
-      logger.debug("----New User signup---");
-      try {
-        const loginServiceInstance = Container.get(app_services.loginService);
-        const res = await loginServiceInstance.newUserSignup(input);
-        if (res)
-          response.json({
-            status: 200,
-            success: true,
-            message: "User Registerd Successfully!",
-          });
-      } catch (e) {
-        return next(new HttpException(e.status, e.success, e.message));
+    //Route for user Forgot password
+    route.post(
+      "/reset-password",
+      middlewares.isAuth,
+      validationMiddleware(ResetPassword),
+      async (req: Request, res: Response,next: NextFunction) => {  
+        try {
+          const { token } = req as any;
+          const loginServiceInstance = Container.get(app_services.loginService);
+          const resetPasswordRes = await loginServiceInstance.resetPassword(req.body,token.user);            
+          return res.json(resetPasswordRes).status(200);
+        } catch(e){
+          return next(new HttpException(e.status, e.success, e.message));
+        }
+        
       }
-    }
-  );
+    );
+
 
   //Route for user Forgot password
   route.post(

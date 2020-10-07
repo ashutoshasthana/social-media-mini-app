@@ -1,6 +1,7 @@
 import { validateSync } from 'class-validator';
 import { Router, Request, Response, NextFunction} from 'express';
 import validationMiddleware from '../middlewares/validation.middleware';
+import middlewares from "../middlewares";
 import { User } from "../../models/user.dto";
 import { Container } from "typedi";
 import { app_services } from "../../services";
@@ -28,4 +29,18 @@ export default (app: Router) => {
       }
         
     });
+
+
+    //route for user signup
+    route.post('/editprofile',middlewares.isAuth,validationMiddleware(User,true), async (req: Request, res: Response,next:NextFunction) => {
+        try {
+          const userServiceInstance = Container.get(app_services.userService); 
+          const addUserRes = await userServiceInstance.addNewUser(req.body);
+          res.json(addUserRes).status(200) ;
+        }catch(e){
+          return next(new HttpException(e.status, e.success, e.message));
+        }
+          
+      });
+
 };

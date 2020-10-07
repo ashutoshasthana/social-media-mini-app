@@ -4,6 +4,7 @@ import { response,NextFunction } from 'express';
 import knex from '../data/knex';
 import HttpException from '../exceptions/HttpException';
 import { User } from '../models/user.dto';
+import { ResetPassword } from '../models/login.dto';
 import jwt from 'jsonwebtoken';
 import config from '../config';
 import atob from 'atob';
@@ -23,16 +24,18 @@ export class LoginService {
  *Method Used to Login User and return User Data
  * @memberof LoginService
  */
-public  userLogin = async (user_name:string,password:string,next:NextFunction):Promise<any> => {    
-    const userRes =  await knex(Tables.USERS).select('*').where({user_name:user_name});//Fetching user record from db   
-    if(userRes.length > 0){
-      const userpass = atob(password);//Here we are converting encrypted password into its original form through 'atob'      
-      const doPasswordsMatch = await bcrypt.compare(userpass,userRes[0].password); 
-      const token = this.generateToken(userRes[0]);
-      if(doPasswordsMatch) {          
-        Reflect.deleteProperty(userRes[0], 'password');       
-        return { user:userRes[0],token};        
+public  userLogin = async (user_name:string,password:string):Promise<any> => {    
+    const checkAccount =  await knex(Tables.ACCOUNTS).select('*').where({user_name:user_name});//Fetching account record from db   
+   
+    if(checkAccount.length > 0){
+      //Here we are comparing encrypted password with its original form      
+      const doPasswordsMatch = await bcrypt.compareSync(password,checkAccount[0].password);        
+      if(doPasswordsMatch) {   
+        const userData = await knex(Tables.USERS).select("*").where({user_id:checkAccount[0].user_id});
+        const token = this.generateToken(userData[0]);          
+        return { user:userData[0],token};        
       } else {
+        this.logger.error("Invalid password");
        throw new HttpException(404,false,'Invalid password');  
      }   
     }
@@ -40,19 +43,33 @@ public  userLogin = async (user_name:string,password:string,next:NextFunction):P
   }
 
 
-
-  public newUserSignup = async (userData:User):Promise<any>=>{       
+  //Service method to Reset password
+  public resetPassword = async (content:ResetPassword,user:User)=>{   
     try {
-      const atb = atob(userData.password);
-      const passwordInPlainText = atb;     
-      const hashedPassword = await bcrypt.hash(passwordInPlainText, 10);
-      //userData.password = hashedPassword;
-     const registerRes = await knex(Tables.USERS).insert(userData);
-     return { userid:registerRes[0] };     
+      console.log("User data",user); 
+      const checkAccount =  await knex(Tables.ACCOUNTS).select('*').where({user_id:user.user_id});
+      if(checkAccount.length > 0)
+      {
+        const doPasswordsMatch = await bcrypt.compareSync(content.old_password,checkAccount[0].password);
+        console.log("doPasswordsMatch ",doPasswordsMatch);
+        if(doPasswordsMatch){
+          const hashedPassword = await bcrypt.hash(content.new_password, 10);
+          const response = await knex(Tables.ACCOUNTS).update({password:hashedPassword}).where({user_id:user.user_id});
+
+          return {success:true,status:200,message:"Password Reset successfully."}
+        }  
+        throw new HttpException(404,false,'Could Not reset password ');
+      }
+      throw new HttpException(404,false,'Could Not reset password ');   
     } catch(e){
-      throw new HttpException(401,false,'User Registration Faild!');
+
+      throw new HttpException(404,false,'Could Not reset password 3');  
     }
+
   }
+
+
+  
 
 
   
