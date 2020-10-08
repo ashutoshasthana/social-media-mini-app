@@ -55,7 +55,6 @@ public  userLogin = async (user_name:string,password:string):Promise<any> => {
         if(doPasswordsMatch){
           const hashedPassword = await bcrypt.hash(content.new_password, 10);
           const response = await knex(Tables.ACCOUNTS).update({password:hashedPassword}).where({user_id:user.user_id});
-
           return {success:true,status:200,message:"Password Reset successfully."}
         }  
         throw new HttpException(404,false,'Could Not reset password ');

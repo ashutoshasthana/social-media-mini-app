@@ -45,3 +45,42 @@ export class User {
     public update_time:Date;  
 
 }
+
+
+export class SendRequest{
+
+    @IsNumber()
+    @IsDefined()
+    @IsNotEmpty()
+    public  requested_id:number
+
+    @IsDate()   
+    public create_time:Date;
+
+    @IsDate()
+    public update_time:Date; 
+
+}
+
+
+export class EditRequest{
+
+    @IsNumber()
+    @IsDefined()
+    @IsNotEmpty()
+    public  id:number
+
+    @IsString()
+    @IsDefined()
+    @IsNotEmpty()
+    public  status:string
+
+}
+
+export class Post {
+    @IsString()
+    @IsDefined()
+    @IsNotEmpty()
+    public post:string;
+    
+}
