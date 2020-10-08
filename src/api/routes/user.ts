@@ -181,7 +181,7 @@ export default (app: Router) => {
 
   //route for user to mutual Friend List
   route.get(
-    "/mutulfriendlist/:id",
+    "/mutulfriendslist/:id",
     middlewares.isAuth,
     async (req: Request, res: Response, next: NextFunction) => {
       try {
