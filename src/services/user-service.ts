@@ -1,6 +1,6 @@
 import { Service, Container } from "typedi";
 import bcrypt from "bcrypt";
-import { response, NextFunction } from "express";
+import { response, NextFunction, Request } from "express";
 import knex from "../data/knex";
 import HttpException from "../exceptions/HttpException";
 import { User, SendRequest, EditRequest, Post } from "../models/user.dto";
@@ -10,6 +10,9 @@ import atob from "atob";
 import app_constant, { Tables, Queries } from "../../app-constant";
 import crypto from "crypto";
 import moment from "moment";
+import formidable from "formidable";
+import fs from "fs";
+import path from "path";
 
 @Service()
 export class UserService {
@@ -79,7 +82,7 @@ export class UserService {
         };
       }
     } catch (e) {
-     this.logger.error("-------- Error : ", e);
+      this.logger.error("-------- Error : ", e);
       throw new HttpException(401, false, "Could not send Friend request.");
     }
   };
@@ -221,49 +224,111 @@ export class UserService {
     }
   };
 
-
-   /**
+  /**
    * Service Method used to get Friends List
    */
   public getFriendList = async (user: User) => {
     try {
-     const friendList = await knex(Tables.FRIENDS).select('*').where({user_id:user.id,unfriend:false});
-      return { success:true,status:200,data:(friendList.length > 0)? friendList : "Friends not Found."};
+      const friendList = await knex(Tables.FRIENDS)
+        .select("*")
+        .where({ user_id: user.id, unfriend: false });
+      return {
+        success: true,
+        status: 200,
+        data: friendList.length > 0 ? friendList : "Friends not Found.",
+      };
     } catch (e) {
       this.logger.error("-------- Error : ", e);
       throw new HttpException(401, e.status, e.message);
     }
   };
 
-
-  
-   /**
+  /**
    * Service Method used to get Friends of Friends List
    */
-  public getFriendofFriendsList = async (id:number,user: User) => {
+  public getFriendofFriendsList = async (id: number, user: User) => {
     try {
-     const friendList = await knex.raw(Queries.FRIEND_OF_FRIENDS,{user_id:user.id,friend_id:id});
-      return { success:true,status:200,data:(friendList.length > 0)? friendList : "Friends not Found."};
+      const friendList = await knex.raw(Queries.FRIEND_OF_FRIENDS, {
+        user_id: user.id,
+        friend_id: id,
+      });
+      return {
+        success: true,
+        status: 200,
+        data: friendList.length > 0 ? friendList : "Friends not Found.",
+      };
     } catch (e) {
       this.logger.error("-------- Error : ", e);
       throw new HttpException(401, e.status, e.message);
     }
   };
-
-
 
   /**
    * Service Method used to get Mutual Friends List
    */
-  public getFMutualFriendsList = async (id:number,user: User) => {
+  public getFMutualFriendsList = async (id: number, user: User) => {
     try {
-     const friendList = await knex.raw(Queries.MUTUAL_FRIENDS,{user_id:user.id,friend_id:id});
-      return { success:true,status:200,data:(friendList.length > 0)? friendList : "Friends not Found."};
+      const friendList = await knex.raw(Queries.MUTUAL_FRIENDS, {
+        user_id: user.id,
+        friend_id: id,
+      });
+      return {
+        success: true,
+        status: 200,
+        data: friendList.length > 0 ? friendList : "Friends not Found.",
+      };
     } catch (e) {
       this.logger.error("-------- Error : ", e);
       throw new HttpException(401, e.status, e.message);
     }
   };
 
+  public uploadPhoto = async (req: Request, user: User) => {
+    try {
+      let form = new formidable.IncomingForm();
+      let imagePath: any;
+      if (
+        fs.existsSync(
+          path.join(path.dirname(require.main.filename)) +
+            "/assets/" +
+            user.user_id
+        )
+      ) {
+        imagePath = path.join(
+          path.dirname(require.main.filename) + "/assets/" + user.user_id + "/"
+        );
+      } else {
+        imagePath = fs.mkdir(
+          path.join(path.dirname(require.main.filename)) +
+            "/assets/" +
+            user.user_id +
+            "/",
+          (err) => console.log("Eror : ", err)
+        );
+      }
 
+      form.parse(req, async (err, fields, files) => {
+        var oldPath = files.filetoupload.path;
+        var newpath =
+          imagePath +
+          new Date().getTime().toString() +
+          "_" +
+          files.filetoupload.name;
+        await fs.rename(oldPath, newpath, (err) => {
+          if (err) throw new HttpException(401, false, "Could not upload.");
+        });
+        const storeUrl = await knex(Tables.USERS)
+          .update({ photo_url: newpath.substr(newpath.indexOf("src")) })
+          .where({ user_id: user.user_id });        
+      });
+      return {
+        success: true,
+        status: 200,
+        message: "image uploaded successfully.",
+      };
+    } catch (e) {
+      this.logger.error("-------- Error : ", e);
+      throw new HttpException(401, e.status, e.message);
+    }
+  };
 }

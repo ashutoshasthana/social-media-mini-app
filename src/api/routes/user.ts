@@ -6,6 +6,7 @@ import { User, SendRequest, EditRequest, Post } from "../../models/user.dto";
 import { Container } from "typedi";
 import { app_services } from "../../services";
 import HttpException from "../../exceptions/HttpException";
+import formidable  from 'formidable';
 
 //import middlewares from '../middlewares';
 const route = Router();
@@ -210,4 +211,21 @@ export default (app: Router) => {
       }
     }
   );
+
+  //route for user to upload image
+  route.get(
+    "/uploadpic",
+    middlewares.isAuth,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { token } = req as any;
+        const userServiceInstance = Container.get(app_services.userService);
+        const uploadRes = await userServiceInstance.uploadPhoto(req,token.user);       
+        res.json(uploadRes).status(200);
+      } catch (e) {
+        return next(new HttpException(e.status, e.success, e.message));
+      }
+    }
+  );
+
 };
